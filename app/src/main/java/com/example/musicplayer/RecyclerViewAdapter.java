@@ -2,12 +2,14 @@ package com.example.musicplayer;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +38,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(context, SongPlaying.class);
-                intent.putExtra("song", songList.get(holder.getAdapterPosition()));
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("SONG", songList.get(holder.getAdapterPosition()));
+                bundle.putInt("INDEX", holder.getAdapterPosition());
+                bundle.putSerializable("LIST", (Serializable) songList);
+                intent.putExtra("BUNDLE", bundle);
                 context.startActivity(intent);
             }
         });
