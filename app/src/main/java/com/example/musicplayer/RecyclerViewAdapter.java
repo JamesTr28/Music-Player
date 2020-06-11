@@ -1,6 +1,7 @@
 package com.example.musicplayer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
@@ -29,7 +31,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         //Inflate the layout, initialize the View Holder
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_layout, parent, false);
-        ViewHolder holder = new ViewHolder(v);
+        final ViewHolder holder = new ViewHolder(v);
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context, SongPlaying.class);
+                intent.putExtra("song", songList.get(holder.getAdapterPosition()));
+                context.startActivity(intent);
+            }
+        });
         return holder;
     }
 
@@ -52,11 +62,12 @@ class ViewHolder extends RecyclerView.ViewHolder {
 
     TextView title;
     TextView artist;
+    CardView cardView;
 
     ViewHolder(View itemView) {
         super(itemView);
         title = (TextView) itemView.findViewById(R.id.songtitle);
         artist = itemView.findViewById(R.id.songartist);
-
+        cardView = itemView.findViewById(R.id.cardview);
     }
 }

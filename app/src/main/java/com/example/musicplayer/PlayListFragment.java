@@ -48,6 +48,8 @@ public class PlayListFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.playlist_fragment, container, false);
+
+        //set up adapter and display recyclerview
         recyclerView = (RecyclerView) v.findViewById(R.id.library_recyclerview);
         RecyclerViewAdapter adapter = new RecyclerViewAdapter(song_List, getActivity());
         recyclerView.setAdapter(adapter);
@@ -164,7 +166,6 @@ public class PlayListFragment extends Fragment {
     /**
      * Load audio files using {@link ContentResolver}
      *
-     * If this don't works for you, load the audio files to audioList Array your oun way
      */
     private void loadSong() {
         ContentResolver contentResolver = getActivity().getContentResolver();
