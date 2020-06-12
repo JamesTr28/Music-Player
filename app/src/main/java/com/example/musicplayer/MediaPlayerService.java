@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.session.MediaSessionManager;
 import android.os.Binder;
@@ -51,7 +52,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     //MediaSession
     private MediaSessionManager mediaSessionManager;
     private MediaSessionCompat mediaSession;
-    private MediaControllerCompat.TransportControls transportControls;
+    public MediaControllerCompat.TransportControls transportControls;
+
+    //get song duration
+    int totalTime;
 
     //MusicPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
@@ -98,6 +102,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         registerBecomingNoisyReceiver();
         //Listen for new Song to play -- BroadcastReceiver
         register_playNewSong();
+
     }
 
     //The system calls this method when an activity, requests the service be started
@@ -191,6 +196,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     /**
      * MediaPlayer callback methods
      */
+
     @Override
     public void onBufferingUpdate(MediaPlayer mp, int percent) {
         //Invoked indicating buffering status of
@@ -200,11 +206,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     @Override
     public void onCompletion(MediaPlayer mp) {
         //Invoked when playback of a media source has completed.
-        stopMedia();
-
-        removeNotification();
-        //stop the service
-        stopSelf();
+        transportControls.skipToNext();
     }
 
     //Handle errors
@@ -234,7 +236,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     @Override
     public void onPrepared(MediaPlayer mp) {
         //Invoked when the media source is ready for playback.
+
         playMedia();
+
+
     }
 
     @Override
@@ -317,18 +322,40 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         try {
             // Set the data source to the mediaFile location
             mediaPlayer.setDataSource(activeSong.getData());
+
         } catch (IOException e) {
             e.printStackTrace();
             stopSelf();
         }
         mediaPlayer.prepareAsync();
+        mediaPlayer.setVolume(0.5f, 0.5f);
     }
+
+
+    public boolean isPlaying() {
+        return mediaPlayer.isPlaying();
+    }
+
+
+    public void seekTo(int position) {
+        mediaPlayer.seekTo(position);
+    }
+
+    public void setVolume(float volume, float v) {
+        mediaPlayer.setVolume(volume, v);
+    }
+    public int getDuration(){
+        return mediaPlayer.getDuration();
+
+    }
+    public int getCurrentPosition() {return mediaPlayer.getCurrentPosition();}
 
     private void playMedia() {
         if (!mediaPlayer.isPlaying()) {
             mediaPlayer.start();
         }
     }
+
 
     private void stopMedia() {
         if (mediaPlayer == null) return;
@@ -391,7 +418,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         mediaPlayer.reset();
         initMediaPlayer();
     }
-
 
     /**
      * ACTION_AUDIO_BECOMING_NOISY -- change in audio outputs
@@ -465,7 +491,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         mediaSession.setActive(true);
         //indicate that the MediaSession handles transport control commands
         // through its MediaSessionCompat.Callback.
-        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS);
 
         //Set mediaSession's MetaData
         updateMetaData();
@@ -663,6 +689,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     };
 
+    //register broadcast
     private void register_playNewSong() {
         //Register playNewMedia receiver
         IntentFilter filter = new IntentFilter(SongPlaying.Broadcast_PLAY_NEW_SONG);

@@ -47,7 +47,7 @@
             android:background="@drawable/shuffle"
             android:layout_marginTop="40dp"
             android:layout_marginRight="40dp"
-            android:onClick="playBtnClick"/>
+            />
 
         <Button
             android:id="@+id/previousBtn"
@@ -57,17 +57,18 @@
             android:layout_marginTop="40dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:onClick="playBtnClick"/>
+            android:onClick="previousAction"
+            />
 
         <Button
             android:id="@+id/playBtn"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:background="@drawable/play"
+            android:background="@drawable/stop"
             android:layout_marginTop="40dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:onClick="playBtnClick"/>
+            android:onClick="playPauseAction"/>
 
         <Button
             android:id="@+id/nextBtn"
@@ -77,7 +78,8 @@
             android:layout_marginTop="40dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:onClick="playBtnClick"/>
+            android:onClick="nextAction"
+            />
 
         <Button
             android:id="@+id/starBtn"
@@ -86,7 +88,7 @@
             android:background="@android:drawable/btn_star_big_on"
             android:layout_marginTop="40dp"
             android:layout_marginLeft="40dp"
-            android:onClick="playBtnClick"/>
+            />
 
     </LinearLayout>
 
@@ -104,7 +106,7 @@
             android:id="@+id/volumeBar"
             android:layout_width="300dp"
             android:layout_height="wrap_content"
-            android:progress="50"
+            android:progress="30"
             android:max="100"/>
         <ImageView
             android:layout_width="26dp"
