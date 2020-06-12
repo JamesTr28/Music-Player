@@ -30,6 +30,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import androidx.annotation.RequiresApi;
 
@@ -54,14 +55,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private MediaSessionCompat mediaSession;
     public MediaControllerCompat.TransportControls transportControls;
 
-    //get song duration
-    int totalTime;
-
     //MusicPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
 
     //Used to pause/resume MusicPlayer
     private int resumePosition;
+    private int position;
+    private int duration;
 
     //AudioFocus
     private AudioManager audioManager;
@@ -80,6 +80,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
+    //Repeat Mode
+    public boolean IsRepeat = false;
 
     /**
      * Service lifecycle methods
@@ -192,7 +194,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
-
     /**
      * MediaPlayer callback methods
      */
@@ -206,7 +207,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     @Override
     public void onCompletion(MediaPlayer mp) {
         //Invoked when playback of a media source has completed.
-        transportControls.skipToNext();
+        //If not in repeat mode, play next song on list
+        if(!IsRepeat) {
+            transportControls.skipToNext();
+        } else {
+            transportControls.skipToNext();
+            transportControls.skipToPrevious();
+        }
     }
 
     //Handle errors
@@ -345,10 +352,24 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         mediaPlayer.setVolume(volume, v);
     }
     public int getDuration(){
-        return mediaPlayer.getDuration();
+        try {
+            duration =  mediaPlayer.getDuration();
+        } catch (IllegalStateException e) {
+            System.out.println("Something went wrong.");
+            stopSelf();
+        }
+        return duration;
 
     }
-    public int getCurrentPosition() {return mediaPlayer.getCurrentPosition();}
+    public int getCurrentPosition() {
+        try {
+            position =  mediaPlayer.getCurrentPosition();
+        } catch (IllegalStateException e) {
+            System.out.println("Something went wrong.");
+            stopSelf();
+        }
+        return position;
+    }
 
     private void playMedia() {
         if (!mediaPlayer.isPlaying()) {

@@ -29,10 +29,29 @@ public class Storage {
         editor.apply();
     }
 
+    public void storeFavoriteSong(ArrayList<Song> arrayList) {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = preferences.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(arrayList);
+        editor.putString("favoriteSong", json);
+        editor.apply();
+    }
+
     public ArrayList<Song> loadSong() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         Gson gson = new Gson();
         String json = preferences.getString("songArrayList", null);
+        Type type = new TypeToken<ArrayList<Song>>() {
+        }.getType();
+        return gson.fromJson(json, type);
+    }
+
+    public ArrayList<Song> loadFavoriteSong() {
+        preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = preferences.getString("favoriteSong", null);
         Type type = new TypeToken<ArrayList<Song>>() {
         }.getType();
         return gson.fromJson(json, type);
@@ -50,10 +69,12 @@ public class Storage {
         return preferences.getInt("songIndex", -1);//return -1 if no data found
     }
 
+
     public void clearCachedSongPlaylist() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.clear();
+        editor.remove("songIndex");
+        editor.remove("songArrayList");
         editor.commit();
     }
 }

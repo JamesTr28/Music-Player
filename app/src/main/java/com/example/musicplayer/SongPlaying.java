@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -28,13 +29,17 @@ public class SongPlaying extends AppCompatActivity {
     Song song;
     int songIndex;
     ArrayList<Song> songList;
+    ArrayList<Song> favoriteList;
+    Storage storage;
+
     private MediaPlayerService player ;
     boolean serviceBound = false;
+    boolean isRepeat = false;
 
 
     SeekBar positionBar, volumeBar;
     TextView elapsedTimeLabel, remainingTimeLabel;
-    Button playBtn, shuffleBtn, nextBtn, previousBtn, starBtn;
+    Button playBtn, repeatBtn, nextBtn, previousBtn, starBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +59,7 @@ public class SongPlaying extends AppCompatActivity {
         elapsedTimeLabel = findViewById(R.id.elapsedTimeLabel);
         remainingTimeLabel = findViewById(R.id.remainingTimeLabel);
         playBtn = findViewById(R.id.playBtn);
-        shuffleBtn = findViewById(R.id.shuffleBtn);
+        repeatBtn = findViewById(R.id.repeatBtn);
         nextBtn = findViewById(R.id.nextBtn);
         previousBtn = findViewById(R.id.previousBtn);
         starBtn = findViewById(R.id.starBtn);
@@ -68,22 +73,13 @@ public class SongPlaying extends AppCompatActivity {
 
         //position Bar
         positionBar.setMax(player.getDuration());
-        new Timer().scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-
-                if(player!=null && player.isPlaying()){
-                    positionBar.setProgress(player.getCurrentPosition());
-                }
-            }
-        }, 0, 10);
 
         positionBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 if (b) {
-
                    player.seekTo(i);
+                    positionBar.setProgress(i);
                 }
             }
 
@@ -120,7 +116,37 @@ public class SongPlaying extends AppCompatActivity {
                 }
         );
 
+        // Thread (Update positionBar & timeLabel)
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (player != null) {
+                    try {
+                        Message msg = new Message();
+                        msg.what = player.getCurrentPosition();
+                        handler.sendMessage(msg);
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {}
+                }
+            }
+        }).start();
     }
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            int currentPosition = msg.what;
+            // Update positionBar.
+            positionBar.setProgress(currentPosition);
+
+            // Update Labels.
+            String elapsedTime = createTimeLabel(currentPosition);
+            elapsedTimeLabel.setText(elapsedTime);
+
+            String remainingTime = createTimeLabel(player.getDuration() - currentPosition);
+            remainingTimeLabel.setText("- " + remainingTime);
+        }
+    };
 
     public String createTimeLabel(int time) {
         String timeLabel = "";
@@ -144,6 +170,7 @@ public class SongPlaying extends AppCompatActivity {
             player = binder.getService();
             serviceBound = true;
             seekBar();
+
         }
 
         @Override
@@ -177,6 +204,7 @@ public class SongPlaying extends AppCompatActivity {
 
     }
 
+    //Save data to instanceState
     @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);
@@ -189,6 +217,7 @@ public class SongPlaying extends AppCompatActivity {
         serviceBound = savedInstanceState.getBoolean("serviceStatus");
     }
 
+    //Unbind service
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -220,6 +249,46 @@ public class SongPlaying extends AppCompatActivity {
     public void previousAction(View view) {
         player.transportControls.skipToPrevious();
         playBtn.setBackgroundResource(R.drawable.stop);
+
+    }
+    //Repeat Button
+    public void repeatAction(View v) {
+        if(isRepeat) {
+            isRepeat = false;
+            Toast.makeText(getApplicationContext(), "Repeat Mode Deactivated!", Toast.LENGTH_SHORT).show();
+            player.IsRepeat = false;
+        }
+        else {
+            isRepeat = true;
+            Toast.makeText(getApplicationContext(), "Repeat Mode Activated!", Toast.LENGTH_SHORT).show();
+            player.IsRepeat = true;
+        }
+
+    }
+
+    //Save favorite song
+    public void favoriteAction(View v) {
+        boolean isStored = false;
+        storage = new Storage(getApplicationContext());
+        favoriteList = storage.loadFavoriteSong();
+        Song currentSong = storage.loadSong().get(storage.loadSongIndex());
+        if(favoriteList == null) {
+            favoriteList = new ArrayList<>();
+            favoriteList.add(currentSong);
+            Toast.makeText(getApplicationContext(), "Saved to Favorite", Toast.LENGTH_SHORT).show();
+        } else {
+            for(int i = 0; i < favoriteList.size(); i++) {
+                if (favoriteList.get(i).getTitle().equals(currentSong.getTitle())) {
+                    Toast.makeText(getApplicationContext(), "Song Has been already saved to Favorites", Toast.LENGTH_SHORT).show();
+                    isStored = true;
+                }
+            }
+            if(!isStored) {
+                favoriteList.add(currentSong);
+                Toast.makeText(getApplicationContext(), "Saved to Favorite", Toast.LENGTH_SHORT).show();
+            }
+        }
+        storage.storeFavoriteSong(favoriteList);
 
     }
 }

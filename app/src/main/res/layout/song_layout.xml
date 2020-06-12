@@ -41,12 +41,13 @@
         android:gravity="center_horizontal" >
 
         <Button
-            android:id="@+id/shuffleBtn"
+            android:id="@+id/repeatBtn"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:background="@drawable/shuffle"
+            android:background="@drawable/repeat"
             android:layout_marginTop="40dp"
-            android:layout_marginRight="40dp"
+            android:layout_marginRight="20dp"
+            android:onClick="repeatAction"
             />
 
         <Button
@@ -87,7 +88,8 @@
             android:layout_height="30dp"
             android:background="@android:drawable/btn_star_big_on"
             android:layout_marginTop="40dp"
-            android:layout_marginLeft="40dp"
+            android:layout_marginLeft="20dp"
+            android:onClick="favoriteAction"
             />
 
     </LinearLayout>
