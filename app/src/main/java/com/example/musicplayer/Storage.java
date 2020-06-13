@@ -35,7 +35,7 @@ public class Storage {
         SharedPreferences.Editor editor = preferences.edit();
         Gson gson = new Gson();
         String json = gson.toJson(arrayList);
-        editor.putString("favoriteSong", json);
+        editor.putString("favoriteList", json);
         editor.apply();
     }
 
@@ -51,7 +51,7 @@ public class Storage {
     public ArrayList<Song> loadFavoriteSong() {
         preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
         Gson gson = new Gson();
-        String json = preferences.getString("favoriteSong", null);
+        String json = preferences.getString("favoriteList", null);
         Type type = new TypeToken<ArrayList<Song>>() {
         }.getType();
         return gson.fromJson(json, type);
@@ -75,6 +75,6 @@ public class Storage {
         SharedPreferences.Editor editor = preferences.edit();
         editor.remove("songIndex");
         editor.remove("songArrayList");
-        editor.commit();
+        editor.apply();
     }
 }
