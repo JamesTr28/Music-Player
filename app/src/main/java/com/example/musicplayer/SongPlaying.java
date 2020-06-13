@@ -150,6 +150,8 @@ public class SongPlaying extends AppCompatActivity {
 
             String remainingTime = createTimeLabel(player.getDuration() - currentPosition);
             remainingTimeLabel.setText("- " + remainingTime);
+            //Udpate title and album
+            songDetail();
         }
     };
 
@@ -176,7 +178,6 @@ public class SongPlaying extends AppCompatActivity {
             serviceBound = true;
             //Initiate the activity after connect to service
             seekBar();
-            songDetail();
 
         }
 
@@ -250,6 +251,7 @@ public class SongPlaying extends AppCompatActivity {
     public void nextAction(View view) {
         player.transportControls.skipToNext();
         playBtn.setBackgroundResource(R.drawable.stop);
+
 
     }
     //Previous Song Button
