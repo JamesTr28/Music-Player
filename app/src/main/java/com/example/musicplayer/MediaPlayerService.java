@@ -8,6 +8,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -17,10 +18,12 @@ import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.session.MediaSessionManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.provider.MediaStore;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -343,6 +346,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         return mediaPlayer.isPlaying();
     }
 
+    public Song getActiveSong() {
+        return activeSong;
+    }
 
     public void seekTo(int position) {
         mediaPlayer.seekTo(position);
@@ -369,6 +375,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             stopSelf();
         }
         return position;
+    }
+
+    //Get song detail and send back to Activity
+    public String getTitle() {
+        return activeSong.getTitle();
     }
 
     private void playMedia() {
@@ -570,8 +581,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     private void updateMetaData() {
-        Bitmap albumArt = BitmapFactory.decodeResource(getResources(),
-                R.drawable.guitar); //replace with medias albumArt
+        long SongAlbumID = Long.parseLong(activeSong.getAlbumID());
+        Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
+        Uri albumArtUri = ContentUris.withAppendedId(sArtworkUri, SongAlbumID);
+        Bitmap albumArt= BitmapFactory.decodeResource(getResources(), R.drawable.guitar);;
+        try {
+            albumArt = MediaStore.Images.Media.getBitmap(this.getContentResolver(), albumArtUri);
+        }catch(Exception e){}
+
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
@@ -605,8 +622,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             play_pauseAction = playbackAction(0);
         }
 
-        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(),
-                R.drawable.guitar);
+        long SongAlbumID = Long.parseLong(activeSong.getAlbumID());
+        Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
+        Uri albumArtUri = ContentUris.withAppendedId(sArtworkUri, SongAlbumID);
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.guitar);;
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), albumArtUri);
+        }catch(Exception e){}
 
         // Create a new Notification
         NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this, MEDIA_CHANNEL_ID)
@@ -621,7 +643,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 // Set the Notification color
                 .setColor(getResources().getColor(R.color.colorAccent))
                 // Set the large and small icons
-                .setLargeIcon(largeIcon)
+                .setLargeIcon(bitmap)
                 .setSmallIcon(android.R.drawable.stat_sys_headset)
                 // Set Notification content information
                 .setContentText(activeSong.getArtist())

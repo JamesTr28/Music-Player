@@ -182,9 +182,10 @@ public class PlayListFragment extends Fragment {
                 String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
                 String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
                 String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                String albumID = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));
 
                 // Save to audioList
-                song_List.add(new Song(data, title, album, artist));
+                song_List.add(new Song(data, title, album, artist, albumID));
             }
         }
         if (cursor != null)

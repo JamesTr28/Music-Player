@@ -39,7 +39,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
             public void onClick(View view) {
                 Intent intent = new Intent(context, SongPlaying.class);
                 Bundle bundle = new Bundle();
-                bundle.putSerializable("SONG", songList.get(holder.getAdapterPosition()));
                 bundle.putInt("INDEX", holder.getAdapterPosition());
                 bundle.putSerializable("LIST", (Serializable) songList);
                 intent.putExtra("BUNDLE", bundle);

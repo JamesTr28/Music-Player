@@ -3,14 +3,19 @@ package com.example.musicplayer;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ComponentName;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PersistableBundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -26,7 +31,6 @@ public class SongPlaying extends AppCompatActivity {
 
     public static final String Broadcast_PLAY_NEW_SONG = "com.example.musicplayer.PlayNewSong";
 
-    Song song;
     int songIndex;
     ArrayList<Song> songList;
     ArrayList<Song> favoriteList;
@@ -36,9 +40,9 @@ public class SongPlaying extends AppCompatActivity {
     boolean serviceBound = false;
     boolean isRepeat = false;
 
-
+    ImageView album;
     SeekBar positionBar, volumeBar;
-    TextView elapsedTimeLabel, remainingTimeLabel;
+    TextView elapsedTimeLabel, remainingTimeLabel, songTitle;
     Button playBtn, repeatBtn, nextBtn, previousBtn, starBtn;
 
     @Override
@@ -49,11 +53,12 @@ public class SongPlaying extends AppCompatActivity {
         //Receive song's details
         Intent intent = getIntent();
         Bundle bundle = intent.getBundleExtra("BUNDLE");
-        song = (Song) bundle.getSerializable("SONG");
         songIndex = (Integer) bundle.getInt("INDEX");
         songList = (ArrayList<Song>) bundle.getSerializable("LIST");
 
         //Variables
+        album = findViewById(R.id.album);
+        songTitle = findViewById(R.id.Title);
         positionBar = findViewById(R.id.positionBar);
         volumeBar = findViewById(R.id.volumeBar);
         elapsedTimeLabel = findViewById(R.id.elapsedTimeLabel);
@@ -126,7 +131,7 @@ public class SongPlaying extends AppCompatActivity {
                         msg.what = player.getCurrentPosition();
                         handler.sendMessage(msg);
                         Thread.sleep(1000);
-                    } catch (InterruptedException e) {}
+                    } catch (InterruptedException e) { System.out.println("Something went wrong.");}
                 }
             }
         }).start();
@@ -149,7 +154,7 @@ public class SongPlaying extends AppCompatActivity {
     };
 
     public String createTimeLabel(int time) {
-        String timeLabel = "";
+        String timeLabel ;
         int min = time / 1000 / 60;
         int sec = time / 1000 % 60;
 
@@ -169,7 +174,9 @@ public class SongPlaying extends AppCompatActivity {
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             player = binder.getService();
             serviceBound = true;
+            //Initiate the activity after connect to service
             seekBar();
+            songDetail();
 
         }
 
@@ -271,7 +278,7 @@ public class SongPlaying extends AppCompatActivity {
         boolean isStored = false;
         storage = new Storage(getApplicationContext());
         favoriteList = storage.loadFavoriteSong();
-        Song currentSong = storage.loadSong().get(storage.loadSongIndex());
+        Song currentSong = player.getActiveSong();
         if(favoriteList == null) {
             favoriteList = new ArrayList<>();
             favoriteList.add(currentSong);
@@ -289,6 +296,26 @@ public class SongPlaying extends AppCompatActivity {
             }
         }
         storage.storeFavoriteSong(favoriteList);
+    }
 
+    //Update song details
+    public void songDetail() {
+        songTitle.setText(player.getTitle());
+        albumArt();
+    }
+
+    //Get album art
+    public void albumArt() {
+        long SongAlbumID = Long.parseLong(player.getActiveSong().getAlbumID());
+
+        Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
+        Uri albumArtUri = ContentUris.withAppendedId(sArtworkUri, SongAlbumID);
+        Bitmap bitmap= BitmapFactory.decodeResource(getResources(), R.drawable.album);
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(SongPlaying.this.getContentResolver(), albumArtUri);
+        }catch(Exception e){e.printStackTrace();}
+
+        //set bitmap for ImageView
+        album.setImageBitmap(bitmap);
     }
 }

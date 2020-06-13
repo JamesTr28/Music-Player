@@ -6,16 +6,28 @@
     >
 
     <ImageView
+        android:id="@+id/album"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="60dp"
         android:src="@drawable/album" />
 
+    <TextView
+        android:id="@+id/Title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold|italic"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#880710"
+        android:gravity="center"
+        android:layout_marginTop="40dp" />
+
+
     <SeekBar
         android:id="@+id/positionBar"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="40dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
